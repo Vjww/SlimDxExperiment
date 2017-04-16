@@ -57,16 +57,20 @@ namespace SlimDxExperiment
                     CreateFlags.HardwareVertexProcessing, presentParams);
 
                 _myWindow = new UIWindow(_device);
+                _myWindow.Location = new Point(200, 200);
                 _myWindow.LoadFromFile(@"ui\window256.bmp");
-                _myWindow.Location = new Point(100, 100);
                 _form.Controls.Add(_myWindow);
 
                 _myButton = new UIButton(_device);
-                _myButton.SetImage(ButtonState.Default, @"ui\buttondefault.bmp");
-                _myButton.SetImage(ButtonState.Down, @"ui\buttonselected.bmp");
-                _myButton.SetImage(ButtonState.Hover, @"ui\buttonhover.bmp");
-                _myButton.SetImage(ButtonState.Selected, @"ui\buttonselected.bmp");
                 _myButton.Location = new Point(100, 100);
+                _myButton.SetTexture(ButtonState.OffNone, @"ui\buttonOffNone.png");
+                _myButton.SetTexture(ButtonState.OffFocus, @"ui\buttonOffFocus.png");
+                _myButton.SetTexture(ButtonState.OffHover, @"ui\buttonOffHover.png");
+                _myButton.SetTexture(ButtonState.OffDown, @"ui\buttonOffDown.png");
+                _myButton.SetTexture(ButtonState.OnNone, @"ui\buttonOnNone.png");
+                _myButton.SetTexture(ButtonState.OnFocus, @"ui\buttonOnFocus.png");
+                _myButton.SetTexture(ButtonState.OnHover, @"ui\buttonOnHover.png");
+                _myButton.SetTexture(ButtonState.OnDown, @"ui\buttonOnDown.png");
                 _form.Controls.Add(_myButton);
 
                 MessagePump.Run(_form, Loop);

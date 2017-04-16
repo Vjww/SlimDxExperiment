@@ -8,7 +8,7 @@ namespace SlimDxExperiment
     /// <summary>
     /// Enumeration of button state.
     /// </summary>
-    public enum ButtonState { Default, Down, Hover, Selected }
+    public enum ButtonState { OffNone, OffFocus, OffHover, OffDown, OnNone, OnFocus, OnHover, OnDown }
 
     /// <summary>
     /// A custom base class to encapsulate a DirectX User Interface Button.
@@ -19,12 +19,18 @@ namespace SlimDxExperiment
         private bool _disposed;
 
         private bool _isLeftMouseButtonDown;
+        private bool _isSelected;
 
         private D3D.Font _font;
-        private UITexture _defaultImage;
-        private UITexture _downImage;
-        private UITexture _hoverImage;
-        private UITexture _selectedImage;
+
+        private UITexture _offNoneTexture;
+        private UITexture _offFocusTexture;
+        private UITexture _offHoverTexture;
+        private UITexture _offDownTexture;
+        private UITexture _onNoneTexture;
+        private UITexture _onFocusTexture;
+        private UITexture _onHoverTexture;
+        private UITexture _onDownTexture;
 
         public string Caption { get; set; }
         public DX.Color4 Color { get; set; }
@@ -41,10 +47,14 @@ namespace SlimDxExperiment
             System.Drawing.Font systemfont = new System.Drawing.Font("Arial", 12f, System.Drawing.FontStyle.Regular);
             _font = new D3D.Font(device, systemfont);
             systemfont.Dispose();
-            _defaultImage = new UITexture(device);
-            _downImage = new UITexture(device);
-            _hoverImage = new UITexture(device);
-            _selectedImage = new UITexture(device);
+            _offNoneTexture = new UITexture(device);
+            _offFocusTexture = new UITexture(device);
+            _offHoverTexture = new UITexture(device);
+            _offDownTexture = new UITexture(device);
+            _onNoneTexture = new UITexture(device);
+            _onFocusTexture = new UITexture(device);
+            _onHoverTexture = new UITexture(device);
+            _onDownTexture = new UITexture(device);
 
             // subscribe mouse event handlers
             MouseEnter += UIButton_MouseEnter;
@@ -75,25 +85,45 @@ namespace SlimDxExperiment
                         _font.Dispose();
                         _font = null;
                     }
-                    if (_defaultImage != null)
+                    if (_offNoneTexture != null)
                     {
-                        _defaultImage.Dispose();
-                        _defaultImage = null;
+                        _offNoneTexture.Dispose();
+                        _offNoneTexture = null;
                     }
-                    if (_downImage != null)
+                    if (_offFocusTexture != null)
                     {
-                        _downImage.Dispose();
-                        _downImage = null;
+                        _offFocusTexture.Dispose();
+                        _offFocusTexture = null;
                     }
-                    if (_hoverImage != null)
+                    if (_offHoverTexture != null)
                     {
-                        _hoverImage.Dispose();
-                        _hoverImage = null;
+                        _offHoverTexture.Dispose();
+                        _offHoverTexture = null;
                     }
-                    if (_selectedImage != null)
+                    if (_offDownTexture != null)
                     {
-                        _selectedImage.Dispose();
-                        _selectedImage = null;
+                        _offDownTexture.Dispose();
+                        _offDownTexture = null;
+                    }
+                    if (_onNoneTexture != null)
+                    {
+                        _onNoneTexture.Dispose();
+                        _onNoneTexture = null;
+                    }
+                    if (_onFocusTexture != null)
+                    {
+                        _onFocusTexture.Dispose();
+                        _onFocusTexture = null;
+                    }
+                    if (_onHoverTexture != null)
+                    {
+                        _onHoverTexture.Dispose();
+                        _onHoverTexture = null;
+                    }
+                    if (_onDownTexture != null)
+                    {
+                        _onDownTexture.Dispose();
+                        _onDownTexture = null;
                     }
 
                     MouseEnter -= UIButton_MouseEnter;
@@ -125,13 +155,13 @@ namespace SlimDxExperiment
                 {
                     // store the state of the left mouse button
                     _isLeftMouseButtonDown = true;
-
-                    // change state
-                    //State = ButtonState.Down;
                 }
 
                 // subscribe mouse event handlers
                 MouseUp += UIButton_MouseUp;
+
+                // change state
+                State = !_isSelected ? ButtonState.OnDown : ButtonState.OffDown;
             }
         }
 
@@ -150,8 +180,8 @@ namespace SlimDxExperiment
             }
 
             // change state
-            State = State != ButtonState.Selected ? ButtonState.Selected : ButtonState.Default;
-
+            _isSelected = !_isSelected;
+            State = !_isSelected ? ButtonState.OffNone : ButtonState.OnNone;
             _isLeftMouseButtonDown = false;
         }
 
@@ -162,7 +192,7 @@ namespace SlimDxExperiment
         /// <param name="e">Event arguments.</param>
         private void UIButton_MouseHover(object sender, EventArgs e)
         {
-            // handle texture change
+            State = !_isSelected ? ButtonState.OffHover : ButtonState.OnHover;
         }
 
         /// <summary>
@@ -172,7 +202,7 @@ namespace SlimDxExperiment
         /// <param name="e">Event arguments.</param>
         private void UIButton_MouseEnter(object sender, EventArgs e)
         {
-            State = ButtonState.Hover;
+            State = !_isSelected ? ButtonState.OffHover : ButtonState.OnHover;
 
             // subscribe mouse event handlers
             MouseLeave += UIButton_MouseLeave;
@@ -185,7 +215,7 @@ namespace SlimDxExperiment
         /// <param name="e">Event arguments.</param>
         private void UIButton_MouseLeave(object sender, EventArgs e)
         {
-            State = ButtonState.Default;
+            State = !_isSelected ? ButtonState.OffNone : ButtonState.OnNone;
 
             // unsubscribe mouse event handlers
             MouseLeave -= UIButton_MouseLeave;
@@ -205,62 +235,77 @@ namespace SlimDxExperiment
         {
             switch (State)
             {
-                case ButtonState.Default:
-                    Texture = _defaultImage;
+                case ButtonState.OffNone:
+                    Texture = _offNoneTexture;
                     break;
-                case ButtonState.Down:
-                    Texture = _downImage;
+                case ButtonState.OffFocus:
+                    Texture = _offFocusTexture;
                     break;
-                case ButtonState.Hover:
-                    Texture = _hoverImage;
+                case ButtonState.OffHover:
+                    Texture = _offHoverTexture;
                     break;
-                case ButtonState.Selected:
-                    Texture = _selectedImage;
+                case ButtonState.OffDown:
+                    Texture = _offDownTexture;
+                    break;
+                case ButtonState.OnNone:
+                    Texture = _onNoneTexture;
+                    break;
+                case ButtonState.OnFocus:
+                    Texture = _onFocusTexture;
+                    break;
+                case ButtonState.OnHover:
+                    Texture = _onHoverTexture;
+                    break;
+                case ButtonState.OnDown:
+                    Texture = _onDownTexture;
                     break;
                 default:
                     throw new Exception("Invalid switch statement value.");
             }
             var result = base.Render();
-            //_font.DrawString(null, Caption, Location.X + 10, Location.Y + 10, Color);
+            _font.DrawString(null, Caption, Location.X + 10, Location.Y + 10, Color);
 
             return result;
         }
 
-        public bool SetImage(ButtonState buttonState, string filePath)
+        public bool SetTexture(ButtonState buttonState, string filePath)
         {
-            D3D.ImageInformation imageInfo = D3D.ImageInformation.FromFile(filePath);
-            Width = imageInfo.Width;
-            Height = imageInfo.Height;
-
             switch (buttonState)
             {
-                case ButtonState.Default:
-                    if (!_defaultImage.LoadFromFile(filePath))
-                        return false;
-                    _defaultImage.Scaling = new DX.Vector2(1.0f, 1.0f);
-                    _defaultImage.Translation = new DX.Vector2(imageInfo.Width, imageInfo.Height);
-                    break;
-                case ButtonState.Down:
-                    if (!_downImage.LoadFromFile(filePath))
-                        return false;
-                    _downImage.Scaling = new DX.Vector2(1.0f, 1.0f);
-                    _downImage.Translation = new DX.Vector2(imageInfo.Width, imageInfo.Height);
-                    break;
-                case ButtonState.Hover:
-                    if (!_hoverImage.LoadFromFile(filePath))
-                        return false;
-                    _hoverImage.Scaling = new DX.Vector2(1.0f, 1.0f);
-                    _hoverImage.Translation = new DX.Vector2(imageInfo.Width, imageInfo.Height);
-                    break;
-                case ButtonState.Selected:
-                    if (!_selectedImage.LoadFromFile(filePath))
-                        return false;
-                    _selectedImage.Scaling = new DX.Vector2(1.0f, 1.0f);
-                    _selectedImage.Translation = new DX.Vector2(imageInfo.Width, imageInfo.Height);
-                    break;
+                case ButtonState.OffNone:
+                    return LoadAndConfigureTexture(_offNoneTexture, filePath);
+                case ButtonState.OffFocus:
+                    return LoadAndConfigureTexture(_offFocusTexture, filePath);
+                case ButtonState.OffHover:
+                    return LoadAndConfigureTexture(_offHoverTexture, filePath);
+                case ButtonState.OffDown:
+                    return LoadAndConfigureTexture(_offDownTexture, filePath);
+                case ButtonState.OnNone:
+                    return LoadAndConfigureTexture(_onNoneTexture, filePath);
+                case ButtonState.OnFocus:
+                    return LoadAndConfigureTexture(_onFocusTexture, filePath);
+                case ButtonState.OnHover:
+                    return LoadAndConfigureTexture(_onHoverTexture, filePath);
+                case ButtonState.OnDown:
+                    return LoadAndConfigureTexture(_onDownTexture, filePath);
                 default:
                     throw new Exception("Invalid switch statement value.");
             }
+        }
+
+        private bool LoadAndConfigureTexture(UITexture texture, string filePath)
+        {
+            var imageInfo = D3D.ImageInformation.FromFile(filePath);
+            //Width = imageInfo.Width;
+            //Height = imageInfo.Height;
+
+            if (!texture.LoadFromFile(filePath))
+            {
+                return false;
+            }
+
+            texture.Scaling = new DX.Vector2(1.0f, 1.0f);
+            texture.Translation = new DX.Vector2(imageInfo.Width, imageInfo.Height);
 
             return true;
         }
